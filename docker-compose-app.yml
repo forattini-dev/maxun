@@ -1,0 +1,33 @@
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    volumes:
+      - ./server:/app/server          # Mount server source code for hot reloading
+      - ./maxun-core:/app/maxun-core  # Mount maxun-core for any shared code updates
+      - /var/run/dbus:/var/run/dbus
+    security_opt:
+      - seccomp=unconfined
+    shm_size: '2gb'
+    mem_limit: 2g
+    ports:
+      - "${BACKEND_PORT:-8080}:${BACKEND_PORT:-8080}"
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 0
+      CHROMIUM_FLAGS: '--disable-gpu --no-sandbox --headless=new'
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - "${FRONTEND_PORT:-5173}:${FRONTEND_PORT:-5173}"
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL}
+      BACKEND_URL: ${BACKEND_URL}
